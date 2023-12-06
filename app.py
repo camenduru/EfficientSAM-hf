@@ -39,7 +39,7 @@ def get_sam_mask_using_points(img_tensor, pts_sampled, model):
 # examples
 examples = [["examples/image1.jpg"], ["examples/image2.jpg"], ["examples/image3.jpg"], ["examples/image4.jpg"],
             ["examples/image5.jpg"], ["examples/image6.jpg"], ["examples/image7.jpg"], ["examples/image8.jpg"],
-            ["examples/image9.jpg"], ["examples/image10.jpg"], ["examples/image11.jpg"], ["examples/image12.jpg"]
+            ["examples/image9.jpg"], ["examples/image10.jpg"], ["examples/image11.jpg"], ["examples/image12.jpg"],
             ["examples/image13.jpg"], ["examples/image14.jpg"]]
 
 
