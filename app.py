@@ -412,16 +412,16 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
                 # Description
                 gr.Markdown(description_p)
 
-    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p], segm_img_p)
+    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p], segm_img_p, queue=True)
 
-    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b)
+    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b, queue=True)
 
     segment_btn_p.click(
-        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p
+        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p, queue=True
     )
 
     segment_btn_b.click(
-        segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b
+        segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b, queue=True
     )
 
     def clear():
@@ -433,4 +433,5 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
     clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p])
     clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b])
 
-demo.launch(enable_queue=True)
+demo.queue()
+demo.launch()
