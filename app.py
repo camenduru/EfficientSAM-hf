@@ -302,10 +302,22 @@ def get_points_with_draw_(image, cond_image, evt: gr.SelectData):
             draw.rectangle([x1, y1, x2, y2], outline="red", width=5)
         elif x1 < x2 and y1 >= y2:
             draw.rectangle([x1, y2, x2, y1], outline="red", width=5)
+            global_points[0][0] = x1
+            global_points[0][1] = y2
+            global_points[1][0] = x2
+            global_points[1][1] = y1
         elif x1 >= x2 and y1 < y2:
             draw.rectangle([x2, y1, x1, y2], outline="red", width=5)
+            global_points[0][0] = x2
+            global_points[0][1] = y1
+            global_points[1][0] = x1
+            global_points[1][1] = y2
         elif x1 >= x2 and y1 >= y2:
             draw.rectangle([x2, y2, x1, y1], outline="red", width=5)
+            global_points[0][0] = x2
+            global_points[0][1] = y2
+            global_points[1][0] = x1
+            global_points[1][1] = y1
 
     return image
 
