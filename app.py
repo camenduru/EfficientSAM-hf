@@ -69,7 +69,9 @@ css = "h1 { text-align: center } .about { text-align: justify; padding-left: 10%
 
 def segment_with_boxs(
     image,
-    seg_image, global_points, global_point_label,
+    seg_image,
+    global_points,
+    global_point_label,
     input_size=1024,
     better_quality=False,
     withContours=True,
@@ -160,15 +162,16 @@ def segment_with_boxs(
 
 
 def segment_with_points(
-    image, global_points, global_point_label,
+    image,
+    global_points,
+    global_point_label,
     input_size=1024,
     better_quality=False,
     withContours=True,
     use_retina=True,
     mask_random_color=True,
 ):
-
-
+    print("Starting getting points")
     print("Original Image : ", image.size)
 
     input_size = int(input_size)
@@ -240,7 +243,7 @@ def segment_with_points(
 
 
 def get_points_with_draw(image, cond_image, global_points, global_point_label, evt: gr.SelectData):
-
+    print("Starting functioning")
     if len(global_points) == 0:
         image = copy.deepcopy(cond_image)
     x, y = evt.index[0], evt.index[1]
@@ -422,9 +425,6 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
 
     def clear():
         return None, None, [], []
-
-    def clear_text():
-        return None, None, None
 
     clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p, global_points, global_point_label])
     clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b, global_points, global_point_label])
