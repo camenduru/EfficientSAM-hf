@@ -411,7 +411,7 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
                 # Description
                 gr.Markdown(description_p)
 
-    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p, global_points, global_point_label], [segm_img_p, global_points, global_point_label])
+    cond_img_p.select(get_points_with_draw, inputs = [segm_img_p, cond_img_p, global_points, global_point_label], outputs = [segm_img_p, global_points, global_point_label])
 
     cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b, global_points, global_point_label], [segm_img_b, global_points, global_point_label])
 
