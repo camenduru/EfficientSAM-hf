@@ -76,97 +76,88 @@ def segment_with_boxs(
     use_retina=True,
     mask_random_color=True,
 ):
-    try:
-        global global_points
-        global global_point_label
-        if len(global_points) < 2:
-            return seg_image
-        print("Original Image : ", image.size)
+    global global_points
+    global global_point_label
+    if len(global_points) < 2:
+        return seg_image
+    print("Original Image : ", image.size)
 
-        input_size = int(input_size)
-        w, h = image.size
-        scale = input_size / max(w, h)
-        new_w = int(w * scale)
-        new_h = int(h * scale)
-        image = image.resize((new_w, new_h))
+    input_size = int(input_size)
+    w, h = image.size
+    scale = input_size / max(w, h)
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+    image = image.resize((new_w, new_h))
 
-        print("Scaled Image : ", image.size)
-        print("Scale : ", scale)
+    print("Scaled Image : ", image.size)
+    print("Scale : ", scale)
 
-        scaled_points = np.array(
-            [[int(x * scale) for x in point] for point in global_points]
-        )
-        scaled_points = scaled_points[:2]
-        scaled_point_label = np.array(global_point_label)[:2]
+    scaled_points = np.array(
+        [[int(x * scale) for x in point] for point in global_points]
+    )
+    scaled_points = scaled_points[:2]
+    scaled_point_label = np.array(global_point_label)[:2]
 
-        print(scaled_points, scaled_points is not None)
-        print(scaled_point_label, scaled_point_label is not None)
+    print(scaled_points, scaled_points is not None)
+    print(scaled_point_label, scaled_point_label is not None)
 
-        if scaled_points.size == 0 and scaled_point_label.size == 0:
-            print("No points selected")
-            return image
-
-        nd_image = np.array(image)
-        img_tensor = ToTensor()(nd_image)
-
-        print(img_tensor.shape)
-        pts_sampled = torch.reshape(torch.tensor(scaled_points), [1, 1, -1, 2])
-        pts_sampled = pts_sampled[:, :, :2, :]
-        pts_labels = torch.reshape(torch.tensor([2, 3]), [1, 1, 2])
-
-        predicted_logits, predicted_iou = model(
-            img_tensor[None, ...].to(device),
-            pts_sampled.to(device),
-            pts_labels.to(device),
-        )
-        predicted_logits = predicted_logits.cpu()
-        all_masks = torch.ge(
-            torch.sigmoid(predicted_logits[0, 0, :, :, :]), 0.5
-        ).numpy()
-        predicted_iou = predicted_iou[0, 0, ...].cpu().detach().numpy()
-
-        max_predicted_iou = -1
-        selected_mask_using_predicted_iou = None
-        selected_predicted_iou = None
-
-        for m in range(all_masks.shape[0]):
-            curr_predicted_iou = predicted_iou[m]
-            if (
-                curr_predicted_iou > max_predicted_iou
-                or selected_mask_using_predicted_iou is None
-            ):
-                max_predicted_iou = curr_predicted_iou
-                selected_mask_using_predicted_iou = all_masks[m : m + 1]
-                selected_predicted_iou = predicted_iou[m : m + 1]
-
-        results = format_results(
-            selected_mask_using_predicted_iou,
-            selected_predicted_iou,
-            predicted_logits,
-            0,
-        )
-
-        annotations = results[0]["segmentation"]
-        annotations = np.array([annotations])
-        print(scaled_points.shape)
-        fig = fast_process(
-            annotations=annotations,
-            image=image,
-            device=device,
-            scale=(1024 // input_size),
-            better_quality=better_quality,
-            mask_random_color=mask_random_color,
-            use_retina=use_retina,
-            bbox=scaled_points.reshape([4]),
-            withContours=withContours,
-        )
-
-        global_points = []
-        global_point_label = []
-        # return fig, None
-        return fig
-    except:
+    if scaled_points.size == 0 and scaled_point_label.size == 0:
+        print("No points selected")
         return image
+
+    nd_image = np.array(image)
+    img_tensor = ToTensor()(nd_image)
+
+    print(img_tensor.shape)
+    pts_sampled = torch.reshape(torch.tensor(scaled_points), [1, 1, -1, 2])
+    pts_sampled = pts_sampled[:, :, :2, :]
+    pts_labels = torch.reshape(torch.tensor([2, 3]), [1, 1, 2])
+
+    predicted_logits, predicted_iou = model(
+        img_tensor[None, ...].to(device),
+        pts_sampled.to(device),
+        pts_labels.to(device),
+    )
+    predicted_logits = predicted_logits.cpu()
+    all_masks = torch.ge(torch.sigmoid(predicted_logits[0, 0, :, :, :]), 0.5).numpy()
+    predicted_iou = predicted_iou[0, 0, ...].cpu().detach().numpy()
+
+
+    max_predicted_iou = -1
+    selected_mask_using_predicted_iou = None
+    selected_predicted_iou = None
+
+    for m in range(all_masks.shape[0]):
+        curr_predicted_iou = predicted_iou[m]
+        if (
+            curr_predicted_iou > max_predicted_iou
+            or selected_mask_using_predicted_iou is None
+        ):
+            max_predicted_iou = curr_predicted_iou
+            selected_mask_using_predicted_iou = all_masks[m:m+1]
+            selected_predicted_iou = predicted_iou[m:m+1]
+
+    results = format_results(selected_mask_using_predicted_iou, selected_predicted_iou, predicted_logits, 0)
+
+    annotations = results[0]["segmentation"]
+    annotations = np.array([annotations])
+    print(scaled_points.shape)
+    fig = fast_process(
+        annotations=annotations,
+        image=image,
+        device=device,
+        scale=(1024 // input_size),
+        better_quality=better_quality,
+        mask_random_color=mask_random_color,
+        use_retina=use_retina,
+        bbox = scaled_points.reshape([4]),
+        withContours=withContours,
+    )
+
+    global_points = []
+    global_point_label = []
+    # return fig, None
+    return fig
 
 
 def segment_with_points(
@@ -177,82 +168,77 @@ def segment_with_points(
     use_retina=True,
     mask_random_color=True,
 ):
-    try:
-        global global_points
-        global global_point_label
+    global global_points
+    global global_point_label
 
-        print("Original Image : ", image.size)
+    print("Original Image : ", image.size)
 
-        input_size = int(input_size)
-        w, h = image.size
-        scale = input_size / max(w, h)
-        new_w = int(w * scale)
-        new_h = int(h * scale)
-        image = image.resize((new_w, new_h))
+    input_size = int(input_size)
+    w, h = image.size
+    scale = input_size / max(w, h)
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+    image = image.resize((new_w, new_h))
 
-        print("Scaled Image : ", image.size)
-        print("Scale : ", scale)
+    print("Scaled Image : ", image.size)
+    print("Scale : ", scale)
 
-        if global_points is None:
-            return image
-        if len(global_points) < 1:
-            return image
-        scaled_points = np.array(
-            [[int(x * scale) for x in point] for point in global_points]
-        )
-        scaled_point_label = np.array(global_point_label)
-
-        print(scaled_points, scaled_points is not None)
-        print(scaled_point_label, scaled_point_label is not None)
-
-        if scaled_points.size == 0 and scaled_point_label.size == 0:
-            print("No points selected")
-            return image
-
-        nd_image = np.array(image)
-        img_tensor = ToTensor()(nd_image)
-
-        print(img_tensor.shape)
-        pts_sampled = torch.reshape(torch.tensor(scaled_points), [1, 1, -1, 2])
-        pts_labels = torch.reshape(torch.tensor(global_point_label), [1, 1, -1])
-
-        predicted_logits, predicted_iou = model(
-            img_tensor[None, ...].to(device),
-            pts_sampled.to(device),
-            pts_labels.to(device),
-        )
-        predicted_logits = predicted_logits.cpu()
-        all_masks = torch.ge(
-            torch.sigmoid(predicted_logits[0, 0, :, :, :]), 0.5
-        ).numpy()
-        predicted_iou = predicted_iou[0, 0, ...].cpu().detach().numpy()
-
-        results = format_results(all_masks, predicted_iou, predicted_logits, 0)
-
-        annotations, _ = point_prompt(
-            results, scaled_points, scaled_point_label, new_h, new_w
-        )
-        annotations = np.array([annotations])
-
-        fig = fast_process(
-            annotations=annotations,
-            image=image,
-            device=device,
-            scale=(1024 // input_size),
-            better_quality=better_quality,
-            mask_random_color=mask_random_color,
-            points=scaled_points,
-            bbox=None,
-            use_retina=use_retina,
-            withContours=withContours,
-        )
-
-        global_points = []
-        global_point_label = []
-        # return fig, None
-        return fig
-    except:
+    if global_points is None:
         return image
+    if len(global_points) < 1:
+        return image
+    scaled_points = np.array(
+        [[int(x * scale) for x in point] for point in global_points]
+    )
+    scaled_point_label = np.array(global_point_label)
+
+    print(scaled_points, scaled_points is not None)
+    print(scaled_point_label, scaled_point_label is not None)
+
+    if scaled_points.size == 0 and scaled_point_label.size == 0:
+        print("No points selected")
+        return image
+
+    nd_image = np.array(image)
+    img_tensor = ToTensor()(nd_image)
+
+    print(img_tensor.shape)
+    pts_sampled = torch.reshape(torch.tensor(scaled_points), [1, 1, -1, 2])
+    pts_labels = torch.reshape(torch.tensor(global_point_label), [1, 1, -1])
+
+    predicted_logits, predicted_iou = model(
+        img_tensor[None, ...].to(device),
+        pts_sampled.to(device),
+        pts_labels.to(device),
+    )
+    predicted_logits = predicted_logits.cpu()
+    all_masks = torch.ge(torch.sigmoid(predicted_logits[0, 0, :, :, :]), 0.5).numpy()
+    predicted_iou = predicted_iou[0, 0, ...].cpu().detach().numpy()
+
+    results = format_results(all_masks, predicted_iou, predicted_logits, 0)
+
+    annotations, _ = point_prompt(
+        results, scaled_points, scaled_point_label, new_h, new_w
+    )
+    annotations = np.array([annotations])
+
+    fig = fast_process(
+        annotations=annotations,
+        image=image,
+        device=device,
+        scale=(1024 // input_size),
+        better_quality=better_quality,
+        mask_random_color=mask_random_color,
+        points = scaled_points,
+        bbox=None,
+        use_retina=use_retina,
+        withContours=withContours,
+    )
+
+    global_points = []
+    global_point_label = []
+    # return fig, None
+    return fig
 
 
 def get_points_with_draw(image, cond_image, evt: gr.SelectData):
@@ -276,15 +262,11 @@ def get_points_with_draw(image, cond_image, evt: gr.SelectData):
         draw = ImageDraw.Draw(image)
 
         draw.ellipse(
-            [
-                (x - point_radius, y - point_radius),
-                (x + point_radius, y + point_radius),
-            ],
+            [(x - point_radius, y - point_radius), (x + point_radius, y + point_radius)],
             fill=point_color,
         )
 
     return image
-
 
 def get_points_with_draw_(image, cond_image, evt: gr.SelectData):
     global global_points
@@ -309,10 +291,7 @@ def get_points_with_draw_(image, cond_image, evt: gr.SelectData):
         draw = ImageDraw.Draw(image)
 
         draw.ellipse(
-            [
-                (x - point_radius, y - point_radius),
-                (x + point_radius, y + point_radius),
-            ],
+            [(x - point_radius, y - point_radius), (x + point_radius, y + point_radius)],
             fill=point_color,
         )
 
@@ -411,6 +390,7 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
                 gr.Examples(
                     examples=examples,
                     inputs=[cond_img_b],
+
                     examples_per_page=4,
                 )
 
@@ -422,7 +402,9 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
 
     cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b)
 
-    segment_btn_p.click(segment_with_points, inputs=[cond_img_p], outputs=segm_img_p)
+    segment_btn_p.click(
+        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p
+    )
 
     segment_btn_b.click(
         segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b
