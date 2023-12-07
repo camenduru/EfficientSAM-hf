@@ -332,8 +332,8 @@ segm_img_b = gr.Image(
     label="Segmented Image with Box-Prompt", interactive=False, type="pil"
 )
 
-global_points = []
-global_point_label = []
+global_points = gr.State([])
+global_point_label = gr.State([])
 
 input_size_slider = gr.components.Slider(
     minimum=512,
@@ -412,16 +412,16 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
                 # Description
                 gr.Markdown(description_p)
 
-    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p], segm_img_p, concurrency_limit=1)
+    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p], segm_img_p)
 
-    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b, concurrency_limit=1)
+    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b)
 
     segment_btn_p.click(
-        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p, concurrency_limit=1
+        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p
     )
 
     segment_btn_b.click(
-        segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b, concurrency_limit=1
+        segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b
     )
 
     def clear():
