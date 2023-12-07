@@ -433,5 +433,4 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
     clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p])
     clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b])
 
-demo.queue()
-demo.launch(share=True)
+demo.launch(enable_queue=True)
