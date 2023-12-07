@@ -331,9 +331,6 @@ segm_img_b = gr.Image(
     label="Segmented Image with Box-Prompt", interactive=False, type="pil"
 )
 
-global_points = gr.State([])
-global_point_label = gr.State([])
-
 input_size_slider = gr.components.Slider(
     minimum=512,
     maximum=1024,
@@ -344,6 +341,8 @@ input_size_slider = gr.components.Slider(
 )
 
 with gr.Blocks(css=css, title="Efficient SAM") as demo:
+    global_points = gr.State([])
+    global_point_label = gr.State([])
     with gr.Row():
         with gr.Column(scale=1):
             # Title
