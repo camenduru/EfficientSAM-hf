@@ -78,9 +78,8 @@ def segment_with_boxs(
     use_retina=True,
     mask_random_color=True,
 ):
-
     if len(global_points) < 2:
-        return seg_image
+        return seg_image, global_points, global_point_label
     print("Original Image : ", image.size)
 
     input_size = int(input_size)
@@ -104,7 +103,7 @@ def segment_with_boxs(
 
     if scaled_points.size == 0 and scaled_point_label.size == 0:
         print("No points selected")
-        return image
+        return image, global_points, global_point_label
 
     nd_image = np.array(image)
     img_tensor = ToTensor()(nd_image)
@@ -171,7 +170,6 @@ def segment_with_points(
     use_retina=True,
     mask_random_color=True,
 ):
-    print("Starting getting points")
     print("Original Image : ", image.size)
 
     input_size = int(input_size)
@@ -185,9 +183,9 @@ def segment_with_points(
     print("Scale : ", scale)
 
     if global_points is None:
-        return image
+        return image, global_points, global_point_label
     if len(global_points) < 1:
-        return image
+        return image, global_points, global_point_label
     scaled_points = np.array(
         [[int(x * scale) for x in point] for point in global_points]
     )
@@ -198,7 +196,7 @@ def segment_with_points(
 
     if scaled_points.size == 0 and scaled_point_label.size == 0:
         print("No points selected")
-        return image
+        return image, global_points, global_point_label
 
     nd_image = np.array(image)
     img_tensor = ToTensor()(nd_image)
@@ -273,7 +271,7 @@ def get_points_with_draw_(image, cond_image, global_points, global_point_label, 
     if len(global_points) == 0:
         image = copy.deepcopy(cond_image)
     if len(global_points) > 2:
-        return image
+        return image, global_points, global_point_label
     x, y = evt.index[0], evt.index[1]
     label = "Add Mask"
     point_radius, point_color = 15, (255, 255, 0) if label == "Add Mask" else (
