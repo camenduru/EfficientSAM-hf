@@ -69,15 +69,14 @@ css = "h1 { text-align: center } .about { text-align: justify; padding-left: 10%
 
 def segment_with_boxs(
     image,
-    seg_image,
+    seg_image, global_points, global_point_label,
     input_size=1024,
     better_quality=False,
     withContours=True,
     use_retina=True,
     mask_random_color=True,
 ):
-    global global_points
-    global global_point_label
+
     if len(global_points) < 2:
         return seg_image
     print("Original Image : ", image.size)
@@ -157,19 +156,18 @@ def segment_with_boxs(
     global_points = []
     global_point_label = []
     # return fig, None
-    return fig
+    return fig, global_points, global_point_label
 
 
 def segment_with_points(
-    image,
+    image, global_points, global_point_label,
     input_size=1024,
     better_quality=False,
     withContours=True,
     use_retina=True,
     mask_random_color=True,
 ):
-    global global_points
-    global global_point_label
+
 
     print("Original Image : ", image.size)
 
@@ -238,12 +236,11 @@ def segment_with_points(
     global_points = []
     global_point_label = []
     # return fig, None
-    return fig
+    return fig, global_points, global_point_label
 
 
-def get_points_with_draw(image, cond_image, evt: gr.SelectData):
-    global global_points
-    global global_point_label
+def get_points_with_draw(image, cond_image, global_points, global_point_label, evt: gr.SelectData):
+
     if len(global_points) == 0:
         image = copy.deepcopy(cond_image)
     x, y = evt.index[0], evt.index[1]
@@ -266,11 +263,10 @@ def get_points_with_draw(image, cond_image, evt: gr.SelectData):
             fill=point_color,
         )
 
-    return image
+    return image, global_points, global_point_label
 
-def get_points_with_draw_(image, cond_image, evt: gr.SelectData):
-    global global_points
-    global global_point_label
+def get_points_with_draw_(image, cond_image, global_points, global_point_label, evt: gr.SelectData):
+
     if len(global_points) == 0:
         image = copy.deepcopy(cond_image)
     if len(global_points) > 2:
@@ -319,7 +315,7 @@ def get_points_with_draw_(image, cond_image, evt: gr.SelectData):
             global_points[1][0] = x1
             global_points[1][1] = y1
 
-    return image
+    return image, global_points, global_point_label
 
 
 cond_img_p = gr.Image(label="Input with Point", value=default_example[0], type="pil")
@@ -332,6 +328,9 @@ segm_img_b = gr.Image(
     label="Segmented Image with Box-Prompt", interactive=False, type="pil"
 )
 
+global_points = gr.State([])
+global_point_label = gr.State([])
+
 input_size_slider = gr.components.Slider(
     minimum=512,
     maximum=1024,
@@ -342,8 +341,6 @@ input_size_slider = gr.components.Slider(
 )
 
 with gr.Blocks(css=css, title="Efficient SAM") as demo:
-    global_points = []
-    global_point_label = []
     with gr.Row():
         with gr.Column(scale=1):
             # Title
@@ -411,26 +408,26 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
                 # Description
                 gr.Markdown(description_p)
 
-    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p], segm_img_p)
+    cond_img_p.select(get_points_with_draw, [segm_img_p, cond_img_p, global_points, global_point_label], [segm_img_p, global_points, global_point_label])
 
-    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b], segm_img_b)
+    cond_img_b.select(get_points_with_draw_, [segm_img_b, cond_img_b, global_points, global_point_label], [segm_img_b, global_points, global_point_label])
 
     segment_btn_p.click(
-        segment_with_points, inputs=[cond_img_p], outputs=segm_img_p
+        segment_with_points, inputs=[cond_img_p, global_points, global_point_label], outputs=[segm_img_p, global_points, global_point_label]
     )
 
     segment_btn_b.click(
-        segment_with_boxs, inputs=[cond_img_b, segm_img_b], outputs=segm_img_b
+        segment_with_boxs, inputs=[cond_img_b, segm_img_b, global_points, global_point_label], outputs=[segm_img_b,global_points, global_point_label]
     )
 
     def clear():
-        return None, None
+        return None, None, [], []
 
     def clear_text():
         return None, None, None
 
-    clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p])
-    clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b])
+    clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p, global_points, global_point_label])
+    clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b, global_points, global_point_label])
 
 demo.queue()
 demo.launch()
