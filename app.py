@@ -62,7 +62,6 @@ examples = [
     ["examples/image14.jpg"],
 ]
 
-default_example = examples[0]
 
 css = "h1 { text-align: center } .about { text-align: justify; padding-left: 10%; padding-right: 10%; }"
 
@@ -319,8 +318,8 @@ def get_points_with_draw_(image, cond_image, global_points, global_point_label, 
     return image, global_points, global_point_label
 
 
-cond_img_p = gr.Image(label="Input with Point", value=default_example[0], type="pil")
-cond_img_b = gr.Image(label="Input with Box", value=default_example[0], type="pil")
+cond_img_p = gr.Image(label="Input with Point", type="pil")
+cond_img_b = gr.Image(label="Input with Box", type="pil")
 
 segm_img_p = gr.Image(
     label="Segmented Image with Point-Prompt", interactive=False, type="pil"
