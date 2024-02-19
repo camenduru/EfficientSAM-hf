@@ -427,4 +427,4 @@ with gr.Blocks(css=css, title="Efficient SAM") as demo:
     clear_btn_b.click(clear, outputs=[cond_img_b, segm_img_b, global_points, global_point_label])
 
 demo.queue()
-demo.launch()
+demo.launch(share=True)
